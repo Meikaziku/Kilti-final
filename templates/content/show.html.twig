@@ -1,0 +1,336 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	{{ content.title }}
+	— Kilti
+{% endblock %}
+
+{% block body %}
+	<body
+		class="bg-[#1c1c1c]">
+
+		{# ===============================================================
+										       HERO — image plein écran avec dégradé et infos par-dessus
+										    =============================================================== #}
+		<section
+			class="relative w-full">
+			{# Image de fond #}
+			<div class="relative h-[420px] md:h-[520px] lg:h-[600px] w-full overflow-hidden">
+				<img
+				src="{{ content.imagePath }}" alt="{{ content.title }}" class="absolute inset-0 w-full h-full object-cover">
+
+				{# Dégradés multi-couches pour lisibilité #}
+				<div class="absolute inset-0 bg-gradient-to-t from-[#1c1c1c] via-[#1c1c1c]/60 to-transparent"></div>
+				<div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent lg:to-black/20"></div>
+			</div>
+
+			{# Contenu superposé : catégorie + titre + meta #}
+			<div class="absolute inset-0 flex flex-col justify-end px-6 md:px-12 lg:px-16 pb-8 lg:pb-12">
+				<div class="max-w-3xl">
+					{% if content.category %}
+						<a href="{{ path('app_explorer', { 'genres[]': content.category.id }) }}" class="inline-flex items-center px-4 py-1.5 rounded-full bg-[#00e5b0]/20 border border-[#00e5b0]/50 text-[#00e5b0] text-xs font-semibold uppercase tracking-wide hover:bg-[#00e5b0]/30 transition mb-4">
+							{{ content.category.name }}
+						</a>
+					{% endif %}
+
+					<h1 class="font-nunito text-white text-4xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
+						{{ content.title }}
+					</h1>
+
+					<div class="flex flex-wrap items-center gap-4 md:gap-6 text-white text-sm">
+						{% if content.duration %}
+							<span class="flex items-center gap-1.5">
+								<svg class="w-4 h-4" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<circle cx="12" cy="12" r="10"/>
+									<polyline points="12 6 12 12 16 14"/>
+								</svg>
+								{% if content.duration >= 60 %}
+									{{ (content.duration / 60)|round(0, 'floor') }}h
+									{% if content.duration % 60 %}
+										{{ content.duration % 60 }}min
+									{% endif %}
+								{% else %}
+									{{ content.duration }}min
+								{% endif %}
+							</span>
+						{% endif %}
+
+						{% if content.rating %}
+							<span class="flex items-center gap-1.5">
+								{% include 'components/rating_stars.html.twig' with { rating: content.rating, size: 'sm' } only %}
+								<span class="text-[#00e5b0] font-semibold ml-1">{{ content.rating|number_format(1, '.', '') }}/5</span>
+							</span>
+						{% endif %}
+
+						<span class="flex items-center gap-1.5">
+							<svg class="w-4 h-4" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+								<circle cx="9" cy="7" r="4"/>
+								<path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+								<path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+							</svg>
+							{% if content.views >= 1000 %}
+								{{ (content.views / 1000)|number_format(1, ',', '') }}k consultations
+							{% else %}
+								{{ content.views }}
+								consultation{{ content.views > 1 ? 's' : '' }}
+							{% endif %}
+						</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		{# ===============================================================
+										       CONTENU PRINCIPAL — Description + Sidebar (desktop) / Stack (mobile)
+										    =============================================================== #}
+		<section class="px-6 md:px-12 lg:px-16 py-8 lg:py-12">
+			<div
+				class="flex flex-col lg:flex-row gap-8">
+
+				{# ============ COLONNE PRINCIPALE ============ #}
+				<div
+					class="flex-1 order-2 lg:order-1">
+
+					{# Boutons d'action — visibles en haut sur mobile uniquement #}
+					<div class="flex flex-col gap-3 mb-6 lg:hidden">
+						<a href="{{ content.url }}" target="_blank" rel="noopener" class="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-[#00e5b0] text-black font-bold hover:opacity-90 transition">
+							<svg class="w-5 h-5" viewbox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+							Lien vers le visionnage
+						</a>
+						{% include 'components/watchlist_button.html.twig' with { content: content, variant: 'full' } only %}
+					</div>
+
+					{# Carte Informations — visible en haut sur mobile uniquement #}
+					<div class="bg-[#2a2a2a] rounded-2xl p-6 mb-6 lg:hidden">
+						<h2 class="text-white text-xl font-bold mb-4">Informations</h2>
+						<div class="flex flex-col divide-y divide-[#3a3a3a]">
+							{% if content.category %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Catégorie</span>
+									<span class="text-white font-semibold">{{ content.category.name }}</span>
+								</div>
+							{% endif %}
+							{% if content.duration %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Durée</span>
+									<span class="text-white font-semibold">
+										{% if content.duration >= 60 %}
+											{{ (content.duration / 60)|round(0, 'floor') }}h
+											{% if content.duration % 60 %}
+												{{ content.duration % 60 }}min
+											{% endif %}
+										{% else %}
+											{{ content.duration }}min
+										{% endif %}
+									</span>
+								</div>
+							{% endif %}
+							{% if content.rating %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Note</span>
+									<span class="flex items-center gap-2">
+										{% include 'components/rating_stars.html.twig' with { rating: content.rating, size: 'xs' } only %}
+										<span class="text-white font-semibold text-sm">{{ content.rating|number_format(1, '.', '') }}</span>
+									</span>
+								</div>
+							{% endif %}
+							<div class="flex justify-between items-center py-3">
+								<span class="text-gray-400 text-sm">Ajouté le</span>
+								<span class="text-white font-semibold">{{ content.createdAt|date('d M Y') }}</span>
+							</div>
+							{% if content.user %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Par</span>
+									<span class="text-[#00e5b0] font-semibold">@{{ content.user.username }}</span>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+
+					{# Carte Description #}
+					<div class="bg-[#2a2a2a] rounded-2xl p-6 lg:p-8">
+						<h2 class="text-[#00e5b0] text-2xl lg:text-3xl font-bold mb-4">Description</h2>
+						<div class="text-white text-base leading-relaxed whitespace-pre-line">{{ content.description|striptags }}</div>
+					</div>
+				</div>
+
+				{% if app.user and app.user != content.user %}
+					<div class="mt-6 p-4 rounded-xl bg-white/5 border border-white/10">
+						{% include 'components/rating_form.html.twig' with {
+    content: content,
+    userRating: userRating,
+    userComment: userComment
+} only %}
+					</div>
+				{% elseif app.user == content.user %}
+					<p class="mt-6 text-sm text-gray-400 italic">Vous ne pouvez pas noter votre propre reportage.</p>
+				{% else %}
+					<p class="mt-6 text-sm text-gray-400">
+						<a href="{{ path('app_login') }}" class="text-[#00e5b0] underline">Connectez-vous</a>
+						pour noter ce reportage.
+					</p>
+				{% endif %}
+
+				{# ============ SIDEBAR (DESKTOP UNIQUEMENT) ============ #}
+				<aside
+					class="hidden lg:flex flex-col gap-4 w-80 order-1 lg:order-2 flex-shrink-0">
+
+					{# Bouton "Lien vers le visionnage" #}
+					<a href="{{ content.url }}" target="_blank" rel="noopener" class="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-[#00e5b0] text-black font-bold hover:opacity-90 transition">
+						<svg class="w-5 h-5" viewbox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+						Lien vers le visionnage
+					</a>
+
+					{# Bouton Watchlist #}
+					{% include 'components/watchlist_button.html.twig' with { content: content, variant: 'full' } only %}
+
+					{% include 'components/rating_stars.html.twig' with { rating: content.rating, showValue: true, size: 'md' } %}
+					{% if content.ratingsCount > 0 %}
+						<span class="ml-2 text-sm text-gray-400">({{ content.ratingsCount }}
+							{{ content.ratingsCount > 1 ? 'notes' : 'note' }})</span>
+					{% endif %}
+
+					{# Carte Informations #}
+					<div class="bg-[#2a2a2a] rounded-2xl p-6 mt-2">
+						<h2 class="text-white text-xl font-bold mb-4">Informations</h2>
+						<div class="flex flex-col divide-y divide-[#3a3a3a]">
+							{% if content.category %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Catégorie</span>
+									<span class="text-white font-semibold">{{ content.category.name }}</span>
+								</div>
+							{% endif %}
+							{% if content.duration %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Durée</span>
+									<span class="text-white font-semibold">
+										{% if content.duration >= 60 %}
+											{{ (content.duration / 60)|round(0, 'floor') }}h
+											{% if content.duration % 60 %}
+												{{ content.duration % 60 }}min
+											{% endif %}
+										{% else %}
+											{{ content.duration }}min
+										{% endif %}
+									</span>
+								</div>
+							{% endif %}
+							{% if content.rating %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Note</span>
+									<span class="flex items-center gap-2">
+										{% include 'components/rating_stars.html.twig' with { rating: content.rating, size: 'xs' } only %}
+										<span class="text-white font-semibold text-sm">{{ content.rating|number_format(1, '.', '') }}</span>
+									</span>
+								</div>
+							{% endif %}
+							<div class="flex justify-between items-center py-3">
+								<span class="text-gray-400 text-sm">Ajouté le</span>
+								<span class="text-white font-semibold">{{ content.createdAt|date('d M Y') }}</span>
+							</div>
+							{% if content.user %}
+								<div class="flex justify-between items-center py-3">
+									<span class="text-gray-400 text-sm">Par</span>
+									<span class="text-[#00e5b0] font-semibold">@{{ content.user.username }}</span>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+				</aside>
+			</div>
+		</section>
+
+		{# ===== SECTION AVIS ===== #}
+		<section class="px-6 md:px-12 lg:px-16 pb-8">
+			<div class="bg-[#2a2a2a] rounded-2xl p-6 lg:p-8">
+				<h2 class="text-[#00e5b0] text-2xl lg:text-3xl font-bold mb-2">Avis</h2>
+				<p class="text-gray-400 text-sm mb-6">
+					{% if content.ratingsCount > 0 %}
+						{{ content.ratingsCount }}
+						note{{ content.ratingsCount > 1 ? 's' : '' }}
+						·
+						{{ content.rating|number_format(1, ',', '') }}/5
+					{% else %}
+						Aucune note pour le moment
+					{% endif %}
+				</p>
+
+				{% if avis|length > 0 %}
+					<div class="flex flex-col divide-y divide-[#3a3a3a]">
+						{% for rating in avis %}
+							{% include 'components/avis_card.html.twig' with { rating: rating } only %}
+						{% endfor %}
+					</div>
+				{% else %}
+					<p class="text-gray-400 text-sm">Aucun avis pour le moment. Soyez le premier à en laisser un !</p>
+				{% endif %}
+			</div>
+		</section>
+
+		{# ===============================================================
+										       SECTION RECOMMANDATIONS SIMILAIRES
+										    =============================================================== #}
+		{% if similar|length > 0 %}
+			<section class="px-6 md:px-12 lg:px-16 pb-16">
+				<div class="bg-[#2a2a2a] rounded-2xl p-6 lg:p-8">
+					<h2 class="text-[#00e5b0] text-2xl lg:text-3xl font-bold mb-2">Recommandation similaires</h2>
+					<p class="text-gray-300 text-sm mb-6">D'autres reportages qui pourraient vous intéresser</p>
+
+					{# Carrousel simple : on affiche le premier, avec boutons prev/next pour changer #}
+					<div id="similar-carousel" class="relative">
+						{% for item in similar %}
+							<div class="similar-slide {% if not loop.first %}hidden{% endif %}" data-slide-index="{{ loop.index0 }}">
+								{% include 'components/content_card.html.twig' with { content: item, layout: 'wide' } only %}
+							</div>
+						{% endfor %}
+
+						{% if similar|length > 1 %}
+							{# Boutons de navigation #}
+							<button type="button" id="similar-prev" class="absolute top-1/2 left-3 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition">
+								<svg class="w-5 h-5" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<polyline points="15 18 9 12 15 6"/>
+								</svg>
+							</button>
+							<button type="button" id="similar-next" class="absolute top-1/2 right-3 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition">
+								<svg class="w-5 h-5" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<polyline points="9 18 15 12 9 6"/>
+								</svg>
+							</button>
+						{% endif %}
+					</div>
+				</div>
+			</section>
+
+			{% if similar|length > 1 %}
+				<script>
+					(function () {
+const slides = document.querySelectorAll('.similar-slide');
+const prev = document.getElementById('similar-prev');
+const next = document.getElementById('similar-next');
+let current = 0;
+
+function show(idx) {
+slides.forEach((s, i) => s.classList.toggle('hidden', i !== idx));
+}
+
+prev ?. addEventListener('click', () => {
+current = (current - 1 + slides.length) % slides.length;
+show(current);
+});
+
+next ?. addEventListener('click', () => {
+current = (current + 1) % slides.length;
+show(current);
+});
+})();
+				</script>
+			{% endif %}
+		{% endif %}
+
+	</body>
+{% endblock %}
+
+{# Indique au bottom nav mobile que la page Explorer est active (pas de section dédiée pour la détail) #}
+{% block nav_active %}explorer
+{% endblock %}

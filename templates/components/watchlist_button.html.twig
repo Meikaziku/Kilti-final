@@ -1,0 +1,116 @@
+{# templates/components/watchlist_button.html.twig
+
+   Bouton qui toggle (ajoute/retire) un reportage dans la watchlist de l'utilisateur connecté.
+   Affiche un état différent selon que le reportage y est déjà ou non.
+
+   Paramètres :
+     - content (Content) : entité Content concernée
+     - variant (string)  : 'icon'  → petit bouton rond (+/-) pour les cartes
+                           'full'  → bouton plein largeur avec libellé pour la page détail
+                           'mini'  → comme 'icon' mais texte abrégé ("Ma liste"/"Retirer")
+
+   Si l'utilisateur n'est pas connecté → bouton qui pointe vers la page de login.
+#}
+
+{% set variant = variant|default('icon') %}
+
+{% if app.user %}
+    {# Détermine si l'utilisateur a déjà ce contenu en watchlist.
+       L'idéal serait d'éviter ce calcul à chaque carte. Pour l'instant on
+       parcourt la collection (acceptable pour < 100 entrées). #}
+    {% set inWatchlist = false %}
+    {% for w in content.watchlists %}
+        {% if w.user == app.user %}
+            {% set inWatchlist = true %}
+        {% endif %}
+    {% endfor %}
+
+    <form method="POST" action="{{ path('app_watchlist_toggle', { id: content.id }) }}" class="inline-block">
+        <input type="hidden" name="_token" value="{{ csrf_token('watchlist-toggle-' ~ content.id) }}">
+
+        {% if variant == 'full' %}
+            {# Bouton plein largeur pour la page détail #}
+            <button type="submit"
+                    class="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl
+                           border-2 border-[#00e5b0] text-[#00e5b0]
+                           {{ inWatchlist ? 'bg-[#00e5b0]/10' : '' }}
+                           hover:bg-[#00e5b0] hover:text-black transition-all font-bold">
+                {% if inWatchlist %}
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Retirer de la Watchlist
+                {% else %}
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Ajouter à la Watchlist
+                {% endif %}
+            </button>
+
+        {% elseif variant == 'mini' %}
+            <button type="submit"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-full
+                           {{ inWatchlist ? 'bg-[#00e5b0] text-black' : 'bg-[#1c1c1c] text-white border border-[#2a2a2a]' }}
+                           text-xs font-bold hover:opacity-90 transition">
+                {% if inWatchlist %}
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Retirer
+                {% else %}
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Ma liste
+                {% endif %}
+            </button>
+
+        {% else %}
+            {# variant 'icon' (par défaut) : bouton rond + ou - sur les cartes #}
+            <button type="submit"
+                    title="{{ inWatchlist ? 'Retirer de ma watchlist' : 'Ajouter à ma watchlist' }}"
+                    class="w-10 h-10 flex items-center justify-center rounded-lg
+                           {{ inWatchlist ? 'bg-[#444] text-white' : 'bg-[#2a2a2a] text-white border border-[#3a3a3a]' }}
+                           hover:bg-[#00e5b0] hover:text-black hover:border-[#00e5b0] transition">
+                {% if inWatchlist %}
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                {% else %}
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                {% endif %}
+            </button>
+        {% endif %}
+    </form>
+{% else %}
+    {# Pas connecté → redirection vers login #}
+    {% if variant == 'full' %}
+        <a href="{{ path('app_login') }}"
+           class="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl
+                  border-2 border-[#00e5b0] text-[#00e5b0]
+                  hover:bg-[#00e5b0] hover:text-black transition-all font-bold">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Ajouter à la Watchlist
+        </a>
+    {% else %}
+        <a href="{{ path('app_login') }}"
+           title="Connecte-toi pour ajouter à ta watchlist"
+           class="w-10 h-10 flex items-center justify-center rounded-lg
+                  bg-[#2a2a2a] text-white border border-[#3a3a3a]
+                  hover:bg-[#00e5b0] hover:text-black hover:border-[#00e5b0] transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        </a>
+    {% endif %}
+{% endif %}

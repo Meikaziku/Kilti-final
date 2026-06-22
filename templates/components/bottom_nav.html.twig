@@ -1,0 +1,49 @@
+{# templates/components/bottom_nav.html.twig #}
+{#
+    Utilisation :
+    {% include 'components/bottom_nav.html.twig' with { active: 'explorer' } %}
+
+    Valeurs possibles pour `active` : 'home', 'explorer', 'watchlist'
+#}
+
+<nav class="fixed bottom-0 left-0 w-full bg-[#1c1c1c] border-t border-[#2a2a2a]
+            flex items-center justify-around px-2 pt-2.5 pb-5 z-50">
+
+    <a href="{{ path('app_home') }}"
+       class="flex flex-col items-center gap-1 text-[10px] {{ (active ?? '') == 'home' ? 'text-[#00e5b0]' : 'text-[#777777]' }}">
+        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Accueil
+    </a>
+
+    <a href="{{ path('app_explorer') }}"
+       class="flex flex-col items-center gap-1 text-[10px] {{ (active ?? '') == 'explorer' ? 'text-[#00e5b0]' : 'text-[#777777]' }}">
+        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+        </svg>
+        Explorer
+    </a>
+
+    <button type="button"
+            onclick="kiltiDrawer.open()"
+            class="flex items-center gap-2 bg-[#00e5b0] text-black rounded-full px-5 py-2.5 text-sm font-bold">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+            <line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+        Filtres
+    </button>
+
+    <a href="{{ path('app_profile_publish') }}"
+       class="flex flex-col items-center gap-1 text-[10px] {{ (active ?? '') == 'watchlist' ? 'text-[#00e5b0]' : 'text-[#777777]' }}">
+        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+        Profile
+    </a>
+
+</nav>

@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Publier un reportage — Kilti{% endblock %}
+
+{% block body %}
+<body class="bg-[#1c1c1c] min-h-screen">
+
+    <main class="px-6 md:px-12 lg:px-16 py-6 lg:py-8">
+
+        {# ===========================================================
+           PROFILE NAV (Watchlist | Publier)
+        =========================================================== #}
+        <div class="flex gap-3 font-manrope text-[16px] text-white items-center mb-2">
+            <a class="text-white hover:text-[#0057FF]" href="{{ path('app_watchlist') }}">Watchlist</a>
+            <div class="h-5 w-px bg-white/40"></div>
+            <a class="text-[#0057FF]" href="{{ path('app_profile_publish') }}">Publier</a>
+        </div>
+        <div class="w-full h-px bg-[#403C3C] mb-8"></div>
+
+        {# ===========================================================
+           HEADER : titre + sous-titre
+        =========================================================== #}
+        <div class="flex gap-4 mb-10">
+            <div class="w-1 bg-[#0057FF] flex-shrink-0"></div>
+            <div class="flex flex-col gap-3">
+                <p class="font-manrope font-semibold text-[#0057FF] text-sm md:text-base uppercase tracking-wide">
+                    Contribution / nouveau reportage
+                </p>
+                <h1 class="font-nunito text-white font-bold text-3xl md:text-4xl lg:text-5xl leading-tight">
+                    Soumettre un<br><span class="text-[#0057FF] italic">reportage</span>
+                </h1>
+                <p class="font-manrope text-white/90 text-sm md:text-base max-w-xl">
+                    Partagez une histoire qui mérite d'être racontée. Chaque reportage est relu par un modérateur avant publication.
+                </p>
+            </div>
+        </div>
+
+        {# ===========================================================
+           FORMULAIRE NUMÉROTÉ 01 → 05
+        =========================================================== #}
+        {{ form_start(form, {
+            attr: {
+                enctype: 'multipart/form-data',
+                novalidate: 'novalidate'
+            }
+        }) }}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
+
+            {# ============ COLONNE GAUCHE : 01, 02, 03 ============ #}
+            <div class="flex flex-col gap-10">
+
+                {# === 01 Titre === #}
+                <div class="flex gap-4">
+                    <span class="font-nunito text-[#0057FF] text-3xl font-bold">01</span>
+                    <div class="flex-1">
+                        <label for="{{ form.title.vars.id }}" class="text-white font-semibold text-lg block mb-2">Titre</label>
+                        {{ form_widget(form.title, {
+                            attr: {
+                                class: 'w-full bg-transparent border-b border-white/30 text-white text-base placeholder-white/40 focus:outline-none focus:border-[#0057FF] py-2',
+                                placeholder: 'Le titre de votre reportage...'
+                            }
+                        }) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+                </div>
+
+                {# === 02 Description === #}
+                <div class="flex gap-4">
+                    <span class="font-nunito text-[#0057FF] text-3xl font-bold">02</span>
+                    <div class="flex-1">
+                        <label for="{{ form.description.vars.id }}" class="text-white font-semibold text-lg block mb-2">Description</label>
+                        {{ form_widget(form.description, {
+                            attr: {
+                                class: 'w-full bg-[#2a2a2a] border border-white/10 rounded-lg text-white text-base placeholder-white/40 focus:outline-none focus:border-[#0057FF] p-4 min-h-32 resize-y',
+                                placeholder: 'Décrivez le sujet, le contexte...',
+                                rows: 5
+                            }
+                        }) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+                </div>
+
+                {# === 03 Catégorie === #}
+                <div class="flex gap-4">
+                    <span class="font-nunito text-[#0057FF] text-3xl font-bold">03</span>
+                    <div class="flex-1">
+                        <label for="{{ form.category.vars.id }}" class="text-white font-semibold text-lg block mb-2">Catégorie</label>
+                        {{ form_widget(form.category, {
+                            attr: {
+                                class: 'w-full bg-[#2a2a2a] border border-white/10 rounded-lg text-white text-base focus:outline-none focus:border-[#0057FF] p-3 appearance-none cursor-pointer'
+                            }
+                        }) }}
+                        {{ form_errors(form.category) }}
+                    </div>
+                </div>
+            </div>
+
+            {# ============ COLONNE DROITE : 04, 05 ============ #}
+            <div class="flex flex-col gap-10 lg:border-l lg:border-white/10 lg:pl-12">
+
+                {# === 04 Image === #}
+                <div class="flex gap-4">
+                    <span class="font-nunito text-[#0057FF] text-3xl font-bold">04</span>
+                    <div class="flex-1">
+                        <label class="text-white font-semibold text-lg block mb-2">Image</label>
+
+                        {# Zone d'upload custom #}
+                        <label for="{{ form.image.vars.id }}"
+                               class="block w-full bg-[#2a2a2a] border-2 border-dashed border-white/20 rounded-lg
+                                      hover:border-[#0057FF] hover:bg-[#2e2e2e] transition cursor-pointer
+                                      p-8 text-center">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-12 h-12 rounded-full bg-[#3a3a3a] flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="17 8 12 3 7 8"/>
+                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                </div>
+                                <p class="text-white text-base">
+                                    <span class="text-[#0057FF] font-semibold">Glissez une image</span>
+                                    <span class="text-white/70">ou cliquez</span>
+                                </p>
+                                <p class="text-white/40 text-xs">JPG, PNG, WebP &mdash; max 100 KB &mdash; format carré</p>
+                                <p id="image-filename" class="text-[#00e5b0] text-sm font-semibold hidden"></p>
+                            </div>
+                        </label>
+
+                        {# Champ input réel, masqué visuellement mais accessible #}
+                        {{ form_widget(form.image, {
+                            attr: {
+                                class: 'sr-only',
+                                onchange: 'document.getElementById("image-filename").textContent = this.files[0]?.name || ""; document.getElementById("image-filename").classList.toggle("hidden", !this.files[0]);'
+                            }
+                        }) }}
+                        {{ form_errors(form.image) }}
+                    </div>
+                </div>
+
+                {# === 05 URL du reportage === #}
+                <div class="flex gap-4">
+                    <span class="font-nunito text-[#0057FF] text-3xl font-bold">05</span>
+                    <div class="flex-1">
+                        <label for="{{ form.url.vars.id }}" class="text-white font-semibold text-lg block mb-2">Url du reportage</label>
+                        <div class="flex items-stretch bg-[#2a2a2a] border border-white/10 rounded-lg overflow-hidden focus-within:border-[#0057FF]">
+                            <span class="px-4 py-2.5 bg-[#1c1c1c] text-white/60 text-sm font-mono border-r border-white/10">
+                                https://
+                            </span>
+                            {{ form_widget(form.url, {
+                                attr: {
+                                    class: 'flex-1 bg-transparent text-white text-base placeholder-white/40 focus:outline-none px-4 py-2.5',
+                                    placeholder: 'lien vers la source originale...'
+                                }
+                            }) }}
+                        </div>
+                        {{ form_errors(form.url) }}
+                    </div>
+                </div>
+
+                {# Footer : disclaimer + bouton publier #}
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 pt-6 border-t border-white/10">
+                    <p class="text-white/60 text-xs max-w-sm">
+                        En publiant, vous acceptez les <a href="#" class="text-[#0057FF] underline">règles éditoriales</a> de Kilti. Votre reportage sera visible après validation.
+                    </p>
+
+                    <button type="submit"
+                            class="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-[#0057FF] text-white font-bold hover:opacity-90 transition whitespace-nowrap">
+                        Publier
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{ form_end(form) }}
+    </main>
+
+</body>
+{% endblock %}
+
+{% block nav_active %}publish{% endblock %}

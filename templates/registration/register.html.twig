@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription — Kilti{% endblock %}
+
+{% block header %}{% endblock %}
+{% block bottom_nav %}{% endblock %}
+
+{% block body %}
+<body class="bg-white min-h-screen">
+
+    <div class="flex flex-col lg:flex-row min-h-screen">
+
+        {# ===========================================================
+           VOLET GAUCHE — fond Terre (desktop uniquement)
+        =========================================================== #}
+        <div class="hidden lg:block lg:w-1/2 relative">
+            <img src="{{ asset('images/bg-terre.png') }}"
+                 alt="Vue satellite de la Terre"
+                 class="absolute inset-0 w-full h-full object-cover">
+        </div>
+
+        {# ===========================================================
+           VOLET DROIT — formulaire d'inscription
+        =========================================================== #}
+        <div class="flex flex-col items-center justify-center w-full lg:w-1/2 px-6 lg:px-16 py-10">
+
+            <div class="w-full max-w-sm">
+
+                {# Logo Kilti #}
+                <div class="text-center mb-10 lg:mb-12">
+                    <h1 class="font-oleo text-black font-bold text-5xl">Kilti</h1>
+                </div>
+
+                {# Titre principal #}
+                <h2 class="text-black font-bold text-xl mb-6 leading-snug">
+                    Pour accéder au contenu créer un compte
+                </h2>
+
+                {{ form_start(registrationForm, { attr: { class: 'flex flex-col gap-4' } }) }}
+
+                    {# Email #}
+                    <div class="flex flex-col gap-1.5">
+                        <label for="{{ registrationForm.email.vars.id }}" class="text-black text-sm font-medium">Connexion</label>
+                        {{ form_widget(registrationForm.email, {
+                            attr: {
+                                class: 'bg-[#F2F2F2] text-[15px] px-4 py-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#0057FF]/30 text-black placeholder-gray-500',
+                                placeholder: 'Email',
+                                autocomplete: 'email'
+                            }
+                        }) }}
+                        {{ form_errors(registrationForm.email) }}
+                    </div>
+
+                    {# Mot de passe avec toggle visibilité #}
+                    <div class="flex flex-col gap-1.5">
+                        <label for="{{ registrationForm.plainPassword.vars.id }}" class="text-black text-sm font-medium">Mot de passe</label>
+                        <div class="relative">
+                            {{ form_widget(registrationForm.plainPassword, {
+                                attr: {
+                                    class: 'bg-[#F2F2F2] text-[15px] px-4 py-3 rounded-lg w-full pr-12 focus:outline-none focus:ring-2 focus:ring-[#0057FF]/30 text-black placeholder-gray-500',
+                                    placeholder: 'Mot de passe',
+                                    autocomplete: 'new-password'
+                                }
+                            }) }}
+                            <button type="button"
+                                    onclick="togglePassword(this)"
+                                    title="Afficher / masquer le mot de passe"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
+                        {{ form_errors(registrationForm.plainPassword) }}
+                    </div>
+
+                    {# Acceptation des conditions (champ existant agreeTerms) #}
+                    {% if registrationForm.agreeTerms is defined %}
+                        <div class="flex items-start gap-2 text-sm mt-1">
+                            {{ form_widget(registrationForm.agreeTerms, { attr: { class: 'mt-0.5' } }) }}
+                            <label for="{{ registrationForm.agreeTerms.vars.id }}" class="text-gray-700 cursor-pointer">
+                                J'accepte les conditions d'utilisation
+                            </label>
+                        </div>
+                        {{ form_errors(registrationForm.agreeTerms) }}
+                    {% endif %}
+
+                    {# Bouton register #}
+                    <button type="submit"
+                            class="w-full bg-[#0057FF] text-white font-bold py-3 rounded-lg hover:opacity-90 transition mt-2">
+                        Register
+                    </button>
+
+                    {# Séparateur #}
+                    <div class="bg-[#E5E5E5] h-px w-full my-2"></div>
+
+                    {# Connexion Google (UI uniquement) #}
+                    <button type="button"
+                            onclick="alert('Connexion Google : fonctionnalité prévue dans une prochaine version. Utilise pour l\u0027instant la création de compte par email.');"
+                            class="w-full bg-[#2a2a2a] text-white font-semibold py-3 rounded-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" viewBox="0 0 48 48">
+                            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                            <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                            <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                        </svg>
+                        Se connecter avec Google
+                    </button>
+
+                    {# Lien vers login #}
+                    <div class="flex gap-2 justify-center mt-4 text-sm">
+                        <span class="text-gray-700">Tu as déjà un compte ?</span>
+                        <a href="{{ path('app_login') }}" class="text-[#0057FF] hover:underline font-semibold">
+                            Connect toi
+                        </a>
+                    </div>
+
+                {{ form_end(registrationForm) }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(btn) {
+            const input = btn.parentElement.querySelector('input');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+
+</body>
+{% endblock %}

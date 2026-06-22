@@ -1,0 +1,115 @@
+{# templates/components/content_card.html.twig
+
+   Carte de présentation d'un reportage, version refondue selon les maquettes
+   Figma (Pc-Explorer, Pc-watchlist, mobile-explorer, mobile-watchlist).
+
+   Paramètres :
+     - content (Content) : le reportage à afficher
+     - layout (string)   : 'vertical' (par défaut)   = carte standard pour les grilles
+                           'wide'                     = carte large pour les recommandations détail
+                           'hero'                     = carte XXL pour le carrousel d'accueil
+#}
+
+{% set layout = layout|default('vertical') %}
+
+{% if layout == 'hero' %}
+    {# Grande carte centrale du carrousel d'accueil #}
+    <a href="{{ path('app_content_show', { id: content.id }) }}"
+       class="relative block rounded-2xl overflow-hidden w-full h-full">
+        <img src="{{ content.imagePath }}"
+             alt="{{ content.title }}"
+             class="absolute inset-0 w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+
+        <div class="absolute top-4 left-4 right-4 md:top-6 md:left-6 md:right-6">
+            {% if content.category %}
+                <span class="inline-block px-3 py-1 rounded-full bg-[#00e5b0] text-black text-[10px] md:text-xs font-bold uppercase tracking-wide">
+                    {{ content.category.name }}
+                </span>
+            {% endif %}
+            <h3 class="text-white text-2xl md:text-4xl font-bold mt-3">{{ content.title }}</h3>
+            <p class="text-gray-200 text-sm md:text-base mt-2 line-clamp-2 max-w-md">
+                {{ content.description|striptags }}
+            </p>
+        </div>
+    </a>
+
+{% elseif layout == 'wide' %}
+    {# Carte large pour la section "Recommandation similaires" sur la page détail #}
+    <a href="{{ path('app_content_show', { id: content.id }) }}"
+       class="relative block rounded-2xl overflow-hidden group">
+        <img src="{{ content.imagePath }}"
+             alt="{{ content.title }}"
+             class="w-full h-64 md:h-80 object-cover transition-transform duration-500 group-hover:scale-105">
+
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+
+        <div class="absolute top-0 left-0 p-6 md:p-8 flex flex-col gap-2 max-w-xl">
+            <h3 class="text-white text-2xl md:text-3xl font-bold">{{ content.title }}</h3>
+            <p class="text-gray-300 text-sm md:text-base">
+                {{ content.description|striptags|u.truncate(90, '…') }}
+            </p>
+        </div>
+
+        <div class="absolute bottom-4 left-4">
+            {% include 'components/watchlist_button.html.twig' with { content: content, variant: 'mini' } only %}
+        </div>
+
+        <div class="absolute bottom-4 right-4">
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00e5b0] text-black text-sm font-bold">
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Lien vers le visionnage
+            </span>
+        </div>
+    </a>
+
+{% else %}
+    {# CARTE VERTICALE STANDARD (Explorer, Watchlist)
+       Fidèle aux maquettes : titre + étoiles en haut, durée/catégorie en bas
+       Boutons sous la carte : bouton Lien plein + bouton toggle #}
+    <article class="group">
+        <a href="{{ path('app_content_show', { id: content.id }) }}"
+           class="relative block rounded-2xl overflow-hidden aspect-[3/4]">
+            <img src="{{ content.imagePath }}"
+                 alt="{{ content.title }}"
+                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+
+            {# Dégradé sombre pour la lisibilité du texte #}
+            <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/85"></div>
+
+            {# Titre + étoiles tout en haut #}
+            <div class="absolute top-3 left-3 right-3">
+                <h3 class="text-white font-bold text-lg leading-tight line-clamp-2">{{ content.title }}</h3>
+                {% if content.rating %}
+                    <div class="mt-1">
+                        {% include 'components/rating_stars.html.twig' with { rating: content.rating, size: 'xs' } only %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Durée à gauche + catégorie à droite en bas #}
+            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-semibold">
+                {% if content.duration %}
+                    <span>
+                        {% if content.duration >= 60 %}{{ (content.duration / 60)|round(0, 'floor') }}h{% if content.duration % 60 %}{{ content.duration % 60 }}{% endif %}{% else %}{{ content.duration }}min{% endif %}
+                    </span>
+                {% else %}
+                    <span></span>
+                {% endif %}
+
+                {% if content.category %}
+                    <span class="text-white/90">{{ content.category.name }}</span>
+                {% endif %}
+            </div>
+        </a>
+
+        {# Actions sous la carte (hors lien pour éviter la propagation du clic) #}
+        <div class="flex items-stretch gap-2 mt-2">
+            <a href="{{ content.url }}" target="_blank" rel="noopener"
+               class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#00e5b0] text-black text-sm font-bold hover:opacity-90 transition">
+                Lien
+            </a>
+            {% include 'components/watchlist_button.html.twig' with { content: content, variant: 'icon' } only %}
+        </div>
+    </article>
+{% endif %}

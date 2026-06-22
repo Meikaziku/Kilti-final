@@ -1,0 +1,203 @@
+{# templates/components/filter_drawer.html.twig
+
+   Drawer de filtres pour la page Explorer. Compatible avec :
+     - les Must Have du projet : filtre par catégorie, durée, note minimale
+     - les filtres sont passés en query string et lus par ExplorerController
+
+   Variables attendues depuis le contexte parent (Explorer) :
+     - categories (ContentCategory[]) : catégories réelles de la BDD
+     - currentGenres   (int[])         : ids des catégories actives
+     - currentDuration (string|null)   : 'gt1h' | 'lt1h' | 'asc' | 'desc'
+     - currentRating   (string|null)   : '1'..'5'
+#}
+
+{# Mapping nom de catégorie → image illustrative (pour le drawer).
+   À étoffer quand de nouvelles catégories seront ajoutées en BDD. #}
+{% set categoryImages = {
+    'Sciences':       'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=300&q=70',
+    'Science':        'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=300&q=70',
+    'Histoire':       'https://images.unsplash.com/photo-1569982175971-d92b01cf8694?w=300&q=70',
+    'Animal':         'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=300&q=70',
+    'Animaux':        'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=300&q=70',
+    'Nature':         'https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=70',
+    'Art':            'https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=300&q=70',
+    'Science-fiction':'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=300&q=70',
+    'Préhistoire':    'https://images.unsplash.com/photo-1599582350154-2c0fb9b69d9c?w=300&q=70',
+    'Société':        'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=300&q=70'
+} %}
+
+{# Si le contrôleur ne fournit pas `categories` (autre page que Explorer),
+   on les charge via la fonction Twig globale. Évite de devoir les passer
+   depuis tous les contrôleurs. #}
+{% if categories is not defined or categories is empty %}
+    {% set categories = kilti_categories() %}
+{% endif %}
+
+{% set activeGenres   = currentGenres ?? app.request.query.all('genres') %}
+{% set activeDuration = currentDuration ?? app.request.query.get('duration') %}
+{% set activeRating   = currentRating   ?? app.request.query.get('min_rating') %}
+
+<!-- ══ OVERLAY ══ -->
+<div id="kilti-overlay"
+     onclick="kiltiDrawer.close()"
+     class="fixed inset-0 bg-black/60 z-[200] opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+<!-- ══ DRAWER ══ -->
+<div id="kilti-drawer"
+     class="fixed bottom-0 left-0 right-0 lg:bottom-auto lg:top-0 lg:left-auto lg:right-0
+            lg:h-screen lg:w-96
+            bg-[#1c1c1c] rounded-t-2xl lg:rounded-t-none lg:rounded-l-2xl
+            z-[201] px-4 lg:px-6 pb-8 lg:pb-6 pt-3 lg:pt-6
+            overflow-y-auto
+            translate-y-full lg:translate-y-0 lg:translate-x-full
+            transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+     style="max-height: 85vh;">
+
+    <!-- Handle mobile -->
+    <div class="lg:hidden w-9 h-1 bg-[#2a2a2a] rounded-full mx-auto mb-5"></div>
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-5">
+        <h2 class="font-bold text-lg text-white">Filtres</h2>
+        <button type="button" onclick="kiltiDrawer.close()"
+                class="w-8 h-8 bg-[#202020] rounded-full flex items-center justify-center text-[#777777] text-sm hover:bg-[#2a2a2a] transition">
+            ✕
+        </button>
+    </div>
+
+    <!-- ══ FORMULAIRE ══ -->
+    <form method="GET" action="{{ path('app_explorer') }}">
+
+        <!-- ── Genres ── -->
+        <p class="text-[10px] uppercase tracking-widest text-[#777777] font-semibold mb-3">
+            <span class="inline-flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#0057FF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Genres
+            </span>
+        </p>
+
+        <div class="grid grid-cols-2 gap-2 mb-6">
+            {% if categories is defined and categories|length > 0 %}
+                {% for category in categories %}
+                    <label class="relative h-20 rounded-xl overflow-hidden cursor-pointer block">
+    <input type="checkbox" name="genres[]" value="{{ category.id }}"
+           class="sr-only peer"
+           {% if category.id in activeGenres %} checked {% endif %}>
+    {% if category.imagePath %}
+        <img src="{{ category.imagePath }}" alt="{{ category.name }}"
+             class="absolute inset-0 w-full h-full object-cover">
+    {% else %}
+        <div class="absolute inset-0 bg-gradient-to-br from-[#0057FF]/40 to-[#00e5b0]/30"></div>
+    {% endif %}
+                        <div class="absolute inset-0 bg-black/45 flex items-center justify-center">
+                            <span class="font-bold text-sm text-white">{{ category.name }}</span>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl ring-2 ring-transparent
+                                    peer-checked:ring-[#00e5b0] transition-all pointer-events-none"></div>
+                    </label>
+                {% endfor %}
+            {% else %}
+                <p class="col-span-2 text-gray-500 text-xs text-center py-4">Aucune catégorie disponible.</p>
+            {% endif %}
+        </div>
+
+        <!-- ── Durées ── -->
+        <p class="text-[10px] uppercase tracking-widest text-[#777777] font-semibold mb-3">
+            <span class="inline-flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#0057FF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Durées
+            </span>
+        </p>
+
+        <div class="flex flex-wrap gap-2 mb-6">
+            {% set durations = [
+                { label: '> 1h',        value: 'gt1h' },
+                { label: '< 1h',        value: 'lt1h' },
+                { label: 'Croissant',   value: 'asc'  },
+                { label: 'Décroissant', value: 'desc' }
+            ] %}
+            {% for d in durations %}
+                <label class="cursor-pointer select-none">
+                    <input type="radio" name="duration" value="{{ d.value }}"
+                           class="sr-only peer"
+                           {% if activeDuration == d.value %} checked {% endif %}>
+                    <span class="block border border-[#2a2a2a] bg-white text-black
+                                 rounded-full px-4 py-2 text-sm font-semibold
+                                 peer-checked:bg-[#00e5b0] peer-checked:text-black
+                                 peer-checked:border-[#00e5b0]
+                                 transition-colors">
+                        {{ d.label }}
+                    </span>
+                </label>
+            {% endfor %}
+        </div>
+
+        <!-- ── Notes ── -->
+        <p class="text-[10px] uppercase tracking-widest text-[#777777] font-semibold mb-3">
+            <span class="inline-flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#0057FF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Notes
+            </span>
+        </p>
+
+        <div class="grid grid-cols-4 gap-2 mb-7">
+            {% for level in [1, 2, 3, 4] %}
+                <label class="cursor-pointer select-none">
+                    <input type="radio" name="min_rating" value="{{ level }}"
+                           class="sr-only peer"
+                           {% if activeRating == level ~ '' %} checked {% endif %}>
+                    <span class="flex items-center justify-center w-full h-11 rounded-xl
+                                 border border-[#2a2a2a] bg-white text-[#00e5b0]
+                                 peer-checked:border-[#00e5b0] peer-checked:bg-[#00e5b0]/15
+                                 transition-colors text-sm font-bold gap-0.5">
+                        {% for i in 1..level %}★{% endfor %}
+                    </span>
+                </label>
+            {% endfor %}
+        </div>
+
+        <!-- ── Boutons d'action ── -->
+        <div class="flex gap-2">
+            <a href="{{ path('app_explorer') }}"
+               class="flex-1 text-center bg-[#2a2a2a] text-white rounded-full py-3 font-semibold text-sm hover:bg-[#3a3a3a] transition">
+                Réinitialiser
+            </a>
+            <button type="submit"
+                    class="flex-[2] bg-[#00e5b0] text-black rounded-full py-3 font-bold text-sm hover:opacity-90 transition">
+                Appliquer les filtres
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<!-- ══ JS VANILLA — compatible Turbo ══ -->
+<script>
+    window.kiltiDrawer = {
+        get drawer() { return document.getElementById('kilti-drawer'); },
+        get overlay() { return document.getElementById('kilti-overlay'); },
+
+        open() {
+            // Mobile : remonte depuis le bas ; Desktop : glisse depuis la droite
+            this.drawer.classList.remove('translate-y-full');
+            this.drawer.classList.remove('lg:translate-x-full');
+            this.overlay.classList.remove('opacity-0', 'pointer-events-none');
+            this.overlay.classList.add('opacity-100');
+            document.body.style.overflow = 'hidden';
+        },
+
+        close() {
+            this.drawer.classList.add('translate-y-full');
+            this.drawer.classList.add('lg:translate-x-full');
+            this.overlay.classList.remove('opacity-100');
+            this.overlay.classList.add('opacity-0', 'pointer-events-none');
+            document.body.style.overflow = '';
+        }
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            window.kiltiDrawer.close();
+        }
+    });
+</script>

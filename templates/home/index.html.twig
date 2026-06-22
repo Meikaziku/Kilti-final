@@ -1,0 +1,217 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Kilti — Les meilleurs reportages francophones{% endblock %}
+
+{% block body %}
+<body class="bg-[#1c1c1c] min-h-screen overflow-x-hidden">
+
+    <main class="px-6 lg:px-16 pt-12 lg:pt-20 pb-24">
+
+        {# ===========================================================
+           TITRE PRINCIPAL
+        =========================================================== #}
+        <h1 class="font-nunito font-black text-white text-center text-4xl md:text-6xl lg:text-7xl leading-tight mb-12 lg:mb-20">
+            Retrouvez les<br>
+            <span class="text-[#0057FF]">meilleurs reportages</span><br>
+            francais sur Kilti
+        </h1>
+
+        {% if featured|length > 0 %}
+
+            {# ===========================================================
+               CARROUSEL DESKTOP — éventail 5 cartes (lg+)
+            =========================================================== #}
+            <div class="hidden lg:block">
+                <div id="fan-carousel" class="relative max-w-6xl mx-auto h-[520px]">
+
+                    {# Container des cartes : chacune positionnée en absolu, transformée par JS #}
+                    <div id="fan-track" class="relative w-full h-full">
+                        {% for content in featured %}
+                            <div class="fan-card absolute top-1/2 left-1/2 rounded-2xl overflow-hidden shadow-2xl
+                                        transition-all duration-500 ease-out"
+                                 data-index="{{ loop.index0 }}"
+                                 style="width: 480px; height: 480px; transform: translate(-50%, -50%);">
+                                {% include 'components/content_card.html.twig' with { content: content, layout: 'hero' } only %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                {# Indicateurs (dots) + flèches #}
+                <div class="flex items-center justify-center gap-4 mt-8">
+                    <button id="fan-prev"
+                            class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+
+                    <div id="fan-dots" class="flex items-center gap-2">
+                        {% for content in featured %}
+                            <button type="button"
+                                    class="fan-dot w-2.5 h-2.5 rounded-full bg-white/40 hover:bg-white transition data-[active=true]:bg-[#7c3aed] data-[active=true]:w-6"
+                                    data-index="{{ loop.index0 }}"
+                                    {% if loop.first %}data-active="true"{% endif %}>
+                            </button>
+                        {% endfor %}
+                    </div>
+
+                    <button id="fan-next"
+                            class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            {# ===========================================================
+               CARROUSEL MOBILE — une carte centrée + swipe natif
+            =========================================================== #}
+            <div class="lg:hidden">
+                <div id="swipe-carousel" class="overflow-hidden -mx-6 px-6">
+                    <div id="swipe-track" class="flex transition-transform duration-300 ease-out">
+                        {% for content in featured %}
+                            <div class="flex-shrink-0 w-full pr-3">
+                                <div class="rounded-2xl overflow-hidden aspect-square">
+                                    {% include 'components/content_card.html.twig' with { content: content, layout: 'hero' } only %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            {# Pas encore de contenu validé #}
+            <div class="text-center text-white/60 py-16 max-w-md mx-auto">
+                <p class="text-lg mb-4">Pas encore de reportage à afficher.</p>
+                {% if app.user %}
+                    <a href="{{ path('app_profile_publish') }}" class="inline-block bg-[#0057FF] text-white px-6 py-3 rounded-lg font-bold hover:opacity-90 transition">
+                        Soumettre le premier reportage
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_register') }}" class="inline-block bg-[#0057FF] text-white px-6 py-3 rounded-lg font-bold hover:opacity-90 transition">
+                        Créer un compte pour contribuer
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </main>
+
+    {# ===========================================================
+       SCRIPTS — éventail desktop + swipe mobile
+    =========================================================== #}
+    {% if featured|length > 0 %}
+        <script>
+            (function() {
+                // ====================================================
+                // CARROUSEL DESKTOP — éventail 5 cartes
+                // ====================================================
+                const cards = document.querySelectorAll('.fan-card');
+                const dots = document.querySelectorAll('.fan-dot');
+                const prevBtn = document.getElementById('fan-prev');
+                const nextBtn = document.getElementById('fan-next');
+                let currentIndex = 0;
+
+                // Positions relatives par rapport à la carte centrale
+                // [0] = active, [-1, 1] = à 1 cran, [-2, 2] = à 2 crans (fragments)
+                const positions = {
+                    0:  { x:    0, scale: 1.00, zIndex: 30, opacity: 1.00, rotate:   0 },
+                    1:  { x:  260, scale: 0.78, zIndex: 20, opacity: 0.90, rotate:   3 },
+                   '-1': { x: -260, scale: 0.78, zIndex: 20, opacity: 0.90, rotate:  -3 },
+                    2:  { x:  440, scale: 0.55, zIndex: 10, opacity: 0.45, rotate:   6 },
+                   '-2': { x: -440, scale: 0.55, zIndex: 10, opacity: 0.45, rotate:  -6 },
+                };
+
+                function update() {
+                    const n = cards.length;
+                    cards.forEach((card, i) => {
+                        // distance signée la plus courte modulo n
+                        let diff = i - currentIndex;
+                        if (diff > n / 2) diff -= n;
+                        if (diff < -n / 2) diff += n;
+
+                        const pos = positions[diff];
+                        if (pos) {
+                            card.style.transform = `translate(calc(-50% + ${pos.x}px), -50%) scale(${pos.scale}) rotate(${pos.rotate}deg)`;
+                            card.style.zIndex = pos.zIndex;
+                            card.style.opacity = pos.opacity;
+                            card.style.display = '';
+                        } else {
+                            // hors champ visible
+                            card.style.opacity = '0';
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    dots.forEach((dot, i) => {
+                        dot.dataset.active = i === currentIndex ? 'true' : 'false';
+                    });
+                }
+
+                prevBtn?.addEventListener('click', () => {
+                    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+                    update();
+                });
+
+                nextBtn?.addEventListener('click', () => {
+                    currentIndex = (currentIndex + 1) % cards.length;
+                    update();
+                });
+
+                dots.forEach(dot => {
+                    dot.addEventListener('click', () => {
+                        currentIndex = parseInt(dot.dataset.index);
+                        update();
+                    });
+                });
+
+                if (cards.length > 0) update();
+
+                // ====================================================
+                // CARROUSEL MOBILE — swipe horizontal
+                // ====================================================
+                const swipeTrack = document.getElementById('swipe-track');
+                if (swipeTrack) {
+                    let mobileIndex = 0;
+                    let startX = 0;
+                    let currentX = 0;
+                    let isDragging = false;
+                    const total = swipeTrack.children.length;
+
+                    function applyMobile() {
+                        swipeTrack.style.transform = `translateX(-${mobileIndex * 100}%)`;
+                    }
+
+                    swipeTrack.addEventListener('touchstart', (e) => {
+                        startX = e.touches[0].clientX;
+                        currentX = startX;
+                        isDragging = true;
+                        swipeTrack.style.transition = 'none';
+                    });
+
+                    swipeTrack.addEventListener('touchmove', (e) => {
+                        if (!isDragging) return;
+                        currentX = e.touches[0].clientX;
+                    });
+
+                    swipeTrack.addEventListener('touchend', () => {
+                        isDragging = false;
+                        swipeTrack.style.transition = 'transform 300ms ease-out';
+                        const diff = currentX - startX;
+                        const threshold = 50;
+                        if (diff > threshold && mobileIndex > 0) {
+                            mobileIndex--;
+                        } else if (diff < -threshold && mobileIndex < total - 1) {
+                            mobileIndex++;
+                        }
+                        applyMobile();
+                    });
+                }
+            })();
+        </script>
+    {% endif %}
+
+</body>
+{% endblock %}
+
+{% block nav_active %}home{% endblock %}

@@ -1,0 +1,14 @@
+{# Une carte d'avis : auteur, note, date, texte #}
+<div class="py-5">
+    <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-full bg-[#00e5b0]/20 flex items-center justify-center text-[#00e5b0] font-bold text-sm flex-shrink-0">
+            {{ rating.user.username|slice(0, 2)|upper }}
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+            <span class="text-[#00e5b0] font-semibold text-sm">@{{ rating.user.username }}</span>
+            {% include 'components/rating_stars.html.twig' with { rating: rating.value, size: 'xs' } only %}
+            <span class="text-gray-500 text-xs">{{ rating.createdAt|date('d/m/Y') }}</span>
+        </div>
+    </div>
+    <p class="text-white text-sm leading-relaxed">{{ rating.comment }}</p>
+</div>

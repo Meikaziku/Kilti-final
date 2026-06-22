@@ -1,0 +1,174 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Explorer — Kilti
+{% endblock %}
+
+{% block body %}
+	<body class="bg-[#1c1c1c] min-h-screen">
+
+		<main
+			class="px-6 md:px-12 lg:px-16 py-8">
+
+			{# ===========================================================
+						           Barre de recherche mobile (la desktop est dans le header)
+						        =========================================================== #}
+			<div class="lg:hidden mb-6">
+				<form method="GET" action="{{ path('app_search') }}" class="flex items-center gap-3 rounded-full bg-white px-4 py-3 border-2 border-[#E0E0E0]">
+					<div class="flex gap-2 items-center w-full">
+						<img class="w-4" src="{{ asset('images/loupe.png') }}" alt="">
+						<input type="text" name="q" placeholder="Rechercher sur Kilti..." class="bg-transparent outline-none text-sm w-full">
+					</div>
+					<button type="button" onclick="kiltiDrawer.open()">
+						<img class="w-4" src="{{ asset('images/filtre.png') }}" alt="filtre">
+					</button>
+				</form>
+			</div>
+
+			{# Sous-titre #}
+			<p class="text-white text-center text-base md:text-lg max-w-2xl mx-auto mb-8">
+				Kilti référence les meilleurs reportages, notés par la communauté, avec des liens vers les plateformes officielles.
+			</p>
+
+			{# Affichage des filtres actifs (chips) #}
+			{% if hasFilters %}
+				<div class="flex flex-wrap items-center gap-2 mb-6">
+					<span class="text-gray-400 text-xs uppercase tracking-widest font-semibold mr-1">Filtres actifs :</span>
+
+					{% for catId in currentGenres %}
+						{% for cat in categories %}
+							{% if cat.id == catId %}
+								<a href="{{ path('app_explorer') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00e5b0]/20 border border-[#00e5b0]/50 text-[#00e5b0] text-xs font-semibold">
+									{{ cat.name }}
+									<svg class="w-3 h-3" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+										<line x1="18" y1="6" x2="6" y2="18"/>
+										<line x1="6" y1="6" x2="18" y2="18"/>
+									</svg>
+								</a>
+							{% endif %}
+						{% endfor %}
+					{% endfor %}
+
+					{% if currentDuration %}
+						<a href="{{ path('app_explorer') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0057FF]/20 border border-[#0057FF]/50 text-[#5b89ff] text-xs font-semibold">
+							{% if currentDuration == 'gt1h' %}&gt; 1h
+								{% elseif currentDuration == 'lt1h' %}&lt; 1h
+								{% elseif currentDuration == 'asc' %}Croissant
+								{% elseif currentDuration == 'desc' %}Décroissant
+							{% endif %}
+							<svg class="w-3 h-3" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+								<line x1="18" y1="6" x2="6" y2="18"/>
+								<line x1="6" y1="6" x2="18" y2="18"/>
+							</svg>
+						</a>
+					{% endif %}
+
+					{% if currentRating %}
+						<a href="{{ path('app_explorer') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-xs font-semibold">
+							≥
+							{{ currentRating }}
+							★
+							<svg class="w-3 h-3" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+								<line x1="18" y1="6" x2="6" y2="18"/>
+								<line x1="6" y1="6" x2="18" y2="18"/>
+							</svg>
+						</a>
+					{% endif %}
+
+					<a href="{{ path('app_explorer') }}" class="text-gray-400 text-xs hover:text-white underline ml-2">Tout effacer</a>
+				</div>
+			{% endif %}
+
+			{# ===========================================================
+			       HERO CAROUSEL — reportage vedette
+			    =========================================================== #}
+			{% if featured %}
+				<div class="relative rounded-2xl overflow-hidden mb-12 group">
+					<a href="{{ path('app_content_show', { id: featured.id }) }}" class="block">
+						<img src="{{ featured.imagePath }}" alt="{{ featured.title }}" class="w-full h-72 md:h-96 lg:h-[480px] object-cover">
+
+						<div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+
+						<div class="absolute bottom-0 left-0 p-6 md:p-10 max-w-2xl">
+							{% if featured.category %}
+								<span class="inline-block px-3 py-1 rounded-full bg-[#00e5b0]/20 border border-[#00e5b0]/50 text-[#00e5b0] text-xs font-semibold uppercase tracking-wide mb-3">
+									{{ featured.category.name }}
+								</span>
+							{% endif %}
+
+							<h2 class="text-white text-3xl md:text-5xl font-bold mb-3">{{ featured.title }}</h2>
+							{% set desc = featured.description|striptags %}
+							<p class="text-gray-300 text-sm md:text-base mb-4">
+								{{ desc|slice(0, 120) }}
+								{% if desc|length > 120 %}…
+								{% endif %}
+							</p>
+						</div>
+					</a>
+
+					{# Actions par-dessus le lien #}
+					<div class="absolute bottom-6 right-6 hidden md:flex items-center gap-3">
+						{% include 'components/watchlist_button.html.twig' with { content: featured, variant: 'mini' } only %}
+						<a href="{{ featured.url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#00e5b0] text-black text-sm font-bold hover:opacity-90 transition">
+							<svg class="w-3 h-3" viewbox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+							Lien vers le visionnage
+						</a>
+					</div>
+				</div>
+			{% endif %}
+
+			{# ===========================================================
+									           SECTION "POPULAIRE CHEZ KILTI"
+									        =========================================================== #}
+			{% if popular|length > 0 and not hasFilters %}
+				<section class="mb-12">
+					<h2 class="text-white text-2xl md:text-3xl font-bold mb-6">Populaire chez Kilti</h2>
+					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+						{% for item in popular|slice(0, 8) %}
+							{% include 'components/content_card.html.twig' with { content: item } only %}
+						{% endfor %}
+					</div>
+				</section>
+			{% endif %}
+
+			{# ===========================================================
+									           RÉSULTATS DE LA RECHERCHE FILTRÉE
+									        =========================================================== #}
+			{% if hasFilters %}
+				<section>
+					<h2 class="text-white text-2xl md:text-3xl font-bold mb-6">
+						Résultats
+						<span class="text-[#00e5b0] text-base font-semibold ml-2">{{ contents|length }}
+							reportage{{ contents|length > 1 ? 's' : '' }}</span>
+					</h2>
+
+					{% if contents|length > 0 %}
+						<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+							{% for item in contents %}
+								{% include 'components/content_card.html.twig' with { content: item } only %}
+							{% endfor %}
+						</div>
+					{% else %}
+						<div class="text-center text-gray-400 py-16">
+							<p class="text-lg mb-2">Aucun reportage ne correspond à ces filtres.</p>
+							<a href="{{ path('app_explorer') }}" class="inline-block mt-4 text-[#00e5b0] underline">Effacer les filtres</a>
+						</div>
+					{% endif %}
+				</section>
+			{% elseif contents|length > popular|length %}
+				{# Section "Tous les reportages" si on a plus de contenus que les populaires #}
+				<section class="mt-8">
+					<h2 class="text-white text-2xl md:text-3xl font-bold mb-6">Tous les reportages</h2>
+					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+						{% for item in contents %}
+							{% include 'components/content_card.html.twig' with { content: item } only %}
+						{% endfor %}
+					</div>
+				</section>
+			{% endif %}
+		</main>
+
+	</body>
+{% endblock %}
+
+{% block nav_active %}explorer
+{% endblock %}
